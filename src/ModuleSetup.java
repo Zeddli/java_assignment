@@ -17,12 +17,12 @@ public final class ModuleSetup {
         // Team members register their modules here.
         // Keep empty until modules are completed.
 
-        // if (user.getRole() == Role.MANAGER) {
+        if (user.getRole() == Role.MANAGER) {
 
-        //     dashboard.registerModule(
-        //             "Revenue Report",
-        //             new RevenueReportPanel()); your own module
-        // }
+            dashboard.registerModule(
+                    "Revenue Report",
+                    new RevenueReportPanel()); 
+        }
         // if (user.getRole() == Role.ADMINISTRATOR) {
 
         //     dashboard.registerModule(
