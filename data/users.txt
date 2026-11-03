@@ -1,0 +1,8 @@
+# userId|role|username|password|fullName|email|phone|extra|status
+MGR001|MANAGER|mgr001|test123|Amir Hassan|amir@sdams.my|0123456789||ACTIVE
+ADM001|ADMIN|adm001|test123|Aisha Rahman|aisha@sdams.my|0123456790||ACTIVE
+INS001|INSTRUCTOR|ins001|test123|Kenji Tan|kenji@sdams.my|0123456791|Karate|ACTIVE
+STU001|STUDENT|stu001|test123|Nurul Huda|nurul@sdams.my|0123456792|2004-05-10|ACTIVE
+FAC001|FACILITIES|fac001|test123|Ravi Kumar|ravi@sdams.my|0123456793||ACTIVE
+ATT001|ATTENDANCE|att001|test123|Siti Aminah|siti@sdams.my|0123456794||ACTIVE
+STU002|STUDENT|stu002|test123|Chen Wei|chen@sdams.my|0177771234|2005-02-12|INACTIVE
