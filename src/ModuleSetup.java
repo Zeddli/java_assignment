@@ -14,8 +14,7 @@ public final class ModuleSetup {
             DashboardFrame dashboard,
             User user) {
 
-        // Team members register their modules here.
-        // Keep empty until modules are completed.
+        // everyone register their modules here.
 
         if (user.getRole() == Role.MANAGER) {
 

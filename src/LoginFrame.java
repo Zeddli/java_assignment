@@ -89,7 +89,7 @@ public class LoginFrame extends JFrame {
                                 22, 24, 22, 24)));
 
         // Logo placeholder.
-        JLabel logo = new JLabel("LOGO", SwingConstants.CENTER);
+        JLabel logo = new JLabel("put logo image here", SwingConstants.CENTER);
 
         logo.setBorder(
                 BorderFactory.createDashedBorder(Color.GRAY));
