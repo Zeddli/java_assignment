@@ -1,7 +1,4 @@
-/**
- * Details needed by the UI after a user
- * has successfully logged in.
- */
+// get the user info after successful login
 public final class User {
 
     private final String userId;

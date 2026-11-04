@@ -26,13 +26,13 @@ public class TextFileHandler {
 
             while ((line = reader.readLine()) != null) {
 
-                // Ignore blank lines and comments.
+                // if got blank line or comment line, skip it
                 if (line.trim().isEmpty()
                         || line.trim().startsWith("#")) {
                     continue;
                 }
 
-                // Preserve empty fields such as "extra".
+                // split the line into fields 
                 String[] fields = line.split("\\|", -1);
 
                 records.add(fields);

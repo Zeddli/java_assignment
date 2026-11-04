@@ -1,7 +1,7 @@
 import java.nio.file.Paths;
 import javax.swing.SwingUtilities;
 
-/** Start SDAMS on Swing's event-dispatch thread. */
+// start the project in main
 public class Main {
 
     public static void main(String[] args) {

@@ -3,10 +3,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Validates existing accounts against
- * the nine-field users.txt contract.
- */
+// validate user data with the text file
 public class TextFileAuthService implements AuthService {
 
     private final Path usersFile;
@@ -28,22 +25,20 @@ public class TextFileAuthService implements AuthService {
 
         for (String[] fields : records) {
 
-            /*
-             * Expected format:
-             * userId|role|username|password|fullName|
-             * email|phone|extra|status
-             */
+            
+            //  userId|role|username|password|fullName|email|phone|extra|status
+             
             if (fields.length != 9) {
                 throw new IOException(
                         "Invalid users.txt record: expected 9 fields.");
             }
 
-            // Search for matching username.
+            // look matching username
             if (!fields[2].trim().equals(username)) {
                 continue;
             }
 
-            // Only ACTIVE accounts can log in.
+            // only activ accounts can log in.
             if (!"ACTIVE".equals(fields[8].trim())) {
                 return Optional.empty();
             }

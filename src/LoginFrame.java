@@ -45,7 +45,7 @@ public class LoginFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Main application heading.
+        // main heading.
         JPanel topBar = new JPanel(new BorderLayout());
 
         topBar.setBackground(new Color(30, 30, 30));
@@ -64,13 +64,13 @@ public class LoginFrame extends JFrame {
 
         add(topBar, BorderLayout.NORTH);
 
-        // Background for the centered login card.
+        // background.
         JPanel background = new JPanel(new GridBagLayout());
 
         background.setBackground(
                 new Color(242, 243, 245));
 
-        // Login card.
+        // login UI here
         JPanel card = new JPanel();
 
         card.setBackground(Color.WHITE);
@@ -88,7 +88,7 @@ public class LoginFrame extends JFrame {
                         BorderFactory.createEmptyBorder(
                                 22, 24, 22, 24)));
 
-        // Logo placeholder.
+        // put logo image here
         JLabel logo = new JLabel("put logo image here", SwingConstants.CENTER);
 
         logo.setBorder(
@@ -101,7 +101,7 @@ public class LoginFrame extends JFrame {
         card.add(logo);
         card.add(Box.createVerticalStrut(16));
 
-        // Sign-in heading.
+        // sign in here
         JLabel heading = new JLabel("Sign in");
 
         heading.setFont(
@@ -112,7 +112,7 @@ public class LoginFrame extends JFrame {
         card.add(heading);
         card.add(Box.createVerticalStrut(15));
 
-        // Username input.
+        // Username input
         card.add(fieldLabel("Username"));
         card.add(Box.createVerticalStrut(4));
 
@@ -123,7 +123,7 @@ public class LoginFrame extends JFrame {
         card.add(usernameField);
         card.add(Box.createVerticalStrut(12));
 
-        // Password input.
+        // Password input
         card.add(fieldLabel("Password"));
         card.add(Box.createVerticalStrut(4));
 
@@ -132,7 +132,7 @@ public class LoginFrame extends JFrame {
         card.add(passwordField);
         card.add(Box.createVerticalStrut(9));
 
-        // Inline validation error.
+        // error handling for invalid credentials or other issues.
         errorLabel.setFont(
                 new Font("SansSerif", Font.PLAIN, 11));
 
@@ -166,18 +166,7 @@ public class LoginFrame extends JFrame {
         card.add(loginButton);
         card.add(Box.createVerticalStrut(12));
 
-        // Informational note only. No registration feature.
-        JLabel note = new JLabel(
-                "<html>No self-registration: accounts are "
-                        + "created by a Manager or Administrator.</html>");
-
-        note.setFont(
-                new Font("SansSerif", Font.PLAIN, 11));
-
-        note.setForeground(Color.DARK_GRAY);
-        note.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        card.add(note);
+        
 
         background.add(card);
 
@@ -238,8 +227,7 @@ public class LoginFrame extends JFrame {
                 return;
             }
 
-            // Pipe characters are not allowed by
-            // the shared text-file contract.
+            // Validate username for invalid characters.
             if (username.contains("|")) {
 
                 errorLabel.setText(
@@ -279,7 +267,7 @@ public class LoginFrame extends JFrame {
             errorLabel.setText(
                     "Unable to read users.txt.");
 
-            // Useful for debugging in Eclipse.
+            // debug, dont delete
             ex.printStackTrace();
 
         } finally {
