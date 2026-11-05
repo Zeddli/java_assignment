@@ -20,7 +20,9 @@ public final class ModuleSetup {
 
             dashboard.registerModule(
                     "Revenue Report",
-                    new RevenueReportPanel()); 
+                    new RevenueReportPanel()
+                ); 
+            
         }
         // if (user.getRole() == Role.ADMINISTRATOR) {
 
