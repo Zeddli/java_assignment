@@ -1,7 +1,12 @@
+package service;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+
+import model.Role;
+import model.User;
+import util.TextFileHandler;
 
 // validate user data with the text file
 public class TextFileAuthService implements AuthService {

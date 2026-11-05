@@ -1,17 +1,9 @@
-import java.nio.file.Paths;
 import javax.swing.SwingUtilities;
 
-// start the project in main
+import gui.LoginFrame;
+
 public class Main {
-
     public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-
-            AuthService authService = new TextFileAuthService(
-                    Paths.get("data", "users.txt"));
-
-            new LoginFrame(authService).setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }

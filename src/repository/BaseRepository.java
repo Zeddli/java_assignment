@@ -3,7 +3,7 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 import model.Storable;
-import util.FileHandler;
+import util.TextFileHandler;
  
 /** Generic CRUD for one .txt file. Child classes only say how to build one object from a line. */
 public abstract class BaseRepository<T extends Storable> {
@@ -15,7 +15,7 @@ public abstract class BaseRepository<T extends Storable> {
  
     public List<T> findAll() {
         List<T> list = new ArrayList<>();
-        for (String line : FileHandler.readLines(fileName)) {
+        for (String line : TextFileHandler.readLines(fileName)) {
             try {
                 list.add(fromFields(line.split("\\|", -1)));
             } catch (RuntimeException badLine) {
@@ -30,13 +30,13 @@ public abstract class BaseRepository<T extends Storable> {
         return null;
     }
  
-    public void add(T item) { FileHandler.appendLine(fileName, item.toLine()); }
+    public void add(T item) { TextFileHandler.appendLine(fileName, item.toLine()); }
  
     /** Replaces the line with the same id. Comment lines (#) and other records stay exactly as they were. */
     public boolean update(T item) {
         List<String> lines = new ArrayList<>();
         boolean found = false;
-        for (String line : FileHandler.readRawLines(fileName)) {
+        for (String line : TextFileHandler.readRawLines(fileName)) {
             boolean isData = !line.isBlank() && !line.startsWith("#");
             if (isData && line.split("\\|", -1)[0].equals(item.getId())) {
                 lines.add(item.toLine());
@@ -45,7 +45,7 @@ public abstract class BaseRepository<T extends Storable> {
                 lines.add(line);
             }
         }
-        if (found) FileHandler.writeLines(fileName, lines);
+        if (found) TextFileHandler.writeLines(fileName, lines);
         return found;
     }
  

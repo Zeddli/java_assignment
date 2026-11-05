@@ -1,3 +1,4 @@
+package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -5,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -19,6 +21,10 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import model.User;
+import service.AuthService;
+import service.TextFileAuthService;
+
 /**
  * Shared login screen.
  * Users can log in but cannot register here.
@@ -32,6 +38,10 @@ public class LoginFrame extends JFrame {
     private final JPasswordField passwordField = new JPasswordField();
 
     private final JLabel errorLabel = new JLabel(" ");
+
+    public LoginFrame() {
+        this(new TextFileAuthService(Paths.get("data", "users.txt")));
+    }
 
     public LoginFrame(AuthService authService) {
 
