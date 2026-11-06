@@ -29,6 +29,9 @@ public final class ModuleSetup {
         //     dashboard.registerModule(
         //             "Revenue Report",
         //             new RevenueReportPanel()); Your own module
+        // 
+        //              "Revenue Report",
+        //             new RevenueReportPanel()); Your own module
         // }
         // if (user.getRole() == Role.STUDENT) {
 
