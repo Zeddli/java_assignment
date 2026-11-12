@@ -43,11 +43,15 @@ public final class ModuleSetup {
             );
         }
 
+        // Administrator Modules (AD1, AD2, AD3)
+        if (Role.ADMIN.equals(user.getRole())) {
+            dashboard.registerModule("Manage Staff", new ManageStaffPanel());
+            dashboard.registerModule("Manage Students", new ManageStudentsPanel());
+            dashboard.registerModule("Payment Records", new PaymentRecordsPanel());
+        }
+
         // Uncomment and update as team members finish their respective role screens:
 
-        // if (Role.ADMIN.equals(user.getRole())) {
-        //     dashboard.registerModule("Manage Staff", new ManageStaffPanel());
-        // }
         // if (Role.STUDENT.equals(user.getRole())) {
         //     dashboard.registerModule("Book Class", new BookClassPanel());
         // }

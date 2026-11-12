@@ -49,6 +49,22 @@ public abstract class BaseRepository<T extends Storable> {
         return found;
     }
  
+    /** Removes the line with this id. Comment lines (#) and other records stay exactly as they were. */
+    public boolean delete(String id) {
+        List<String> lines = new ArrayList<>();
+        boolean found = false;
+        for (String line : TextFileHandler.readRawLines(fileName)) {
+            boolean isData = !line.isBlank() && !line.startsWith("#");
+            if (isData && line.split("\\|", -1)[0].equals(id)) {
+                found = true;
+            } else {
+                lines.add(line);
+            }
+        }
+        if (found) TextFileHandler.writeLines(fileName, lines);
+        return found;
+    }
+
     /** Next id such as ATD004: prefix + biggest number so far + 1. */
     public String nextId(String prefix) {
         int max = 0;
