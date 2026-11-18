@@ -9,6 +9,7 @@ import repository.ClassRepository;
 import repository.PaymentRepository;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
@@ -17,6 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ManagePaymentPanel extends JPanel {
+
+    private static final Color BLUE_DARK = new Color(55, 68, 88);
+    private static final Color BLUE_PALE = new Color(237, 240, 245);
+    private static final Color TEXT = new Color(40, 51, 69);
+    private static final Color MUTED = new Color(101, 114, 132);
+    private static final Color LINE = new Color(218, 227, 239);
+    private static final Font BODY_FONT = new Font("SansSerif", Font.PLAIN, 13);
 
     private final User student;
 
@@ -27,48 +35,55 @@ public class ManagePaymentPanel extends JPanel {
     private final PaymentRepository paymentRepository =
             new PaymentRepository();
 
-    private final JTextField searchField = new JTextField(12);
-    private final JTextField fromDateField = new JTextField(9);
-    private final JTextField toDateField = new JTextField(9);
+    private final JTextField searchField =
+            new HintTextField("e.g. PAY001 or Karate", 18);
+    private final JTextField fromDateField =
+            new HintTextField("yyyy-MM-dd", 11);
+    private final JTextField toDateField =
+            new HintTextField("yyyy-MM-dd", 11);
 
     private final DefaultTableModel paymentModel =
             new DefaultTableModel(
                     new String[]{
-        "Payment ID", "Class", "Paid On",
-        "Method", "Amount (RM)"
-    }, 0) {
-
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
+                        "Payment ID", "Class", "Paid On",
+                        "Method", "Amount (RM)"
+                    }, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
 
     private final JTable paymentTable = new JTable(paymentModel);
 
-    private final JComboBox<String> unpaidBookingBox =
-            new JComboBox<>();
-
+    private final JComboBox<String> unpaidBookingBox = new JComboBox<>();
     private final JTextField amountField = new JTextField();
     private final JComboBox<String> paymentMethodBox =
             new JComboBox<>(new String[]{
-        "Card", "Cash", "Online banking"
-    });
+                "Card", "Cash", "Online banking"
+            });
 
     private final JButton payButton = new JButton("Pay Now");
+    private final JLabel totalPaidValue = summaryValueLabel();
+    private final JLabel outstandingValue = summaryValueLabel();
+    private final JLabel paymentsMadeValue = summaryValueLabel();
+    private final JLabel unpaidBookingsValue = summaryValueLabel();
+    private final JLabel totalBookingsValue = summaryValueLabel();
+    private final JLabel paymentCompletionValue = summaryValueLabel();
 
     public ManagePaymentPanel(User student) {
         this.student = student;
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(12, 12));
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
 
         buildInterface();
+        styleTable(paymentTable);
         refreshData();
 
-        // Refresh payment records whenever this panel becomes visible.
-        addComponentListener(new java.awt.event.ComponentAdapter(){
+        // Reload payments when returning to the screen after a booking or payment change.
+        addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
                 refreshData();
@@ -77,118 +92,174 @@ public class ManagePaymentPanel extends JPanel {
     }
 
     private void buildInterface() {
-
-        JPanel topPanel = new JPanel(new BorderLayout(0, 10));
+        JPanel topPanel = new JPanel(new BorderLayout(0, 14));
         topPanel.setOpaque(false);
 
-        JLabel heading = new JLabel("Manage Payment");
-        heading.setFont(new Font("SansSerif", Font.BOLD, 20));
-        topPanel.add(heading, BorderLayout.NORTH);
+        JPanel headingPanel = new JPanel(new GridLayout(2, 1, 0, 3));
+        headingPanel.setOpaque(false);
 
-        JPanel filterPanel = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JLabel heading = new JLabel("Manage Payment");
+        heading.setFont(new Font("SansSerif", Font.BOLD, 21));
+        heading.setForeground(TEXT);
+
+        JLabel subheading = new JLabel("Pay for your classes and review payment history");
+        subheading.setFont(BODY_FONT);
+        subheading.setForeground(MUTED);
+
+        headingPanel.add(heading);
+        headingPanel.add(subheading);
+        topPanel.add(headingPanel, BorderLayout.NORTH);
+
+        styleField(searchField);
+        styleField(fromDateField);
+        styleField(toDateField);
+
+        JPanel filterPanel = new JPanel(new GridBagLayout());
         filterPanel.setOpaque(false);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridy = 0;
+        gc.anchor = GridBagConstraints.WEST;
+        gc.insets = new Insets(0, 0, 5, 10);
+
+        gc.gridx = 0;
+        filterPanel.add(fieldLabel("Search payment or class"), gc);
+        gc.gridx = 1;
+        filterPanel.add(fieldLabel("From date"), gc);
+        gc.gridx = 2;
+        filterPanel.add(fieldLabel("To date"), gc);
+
+        gc.gridy = 1;
+        gc.insets = new Insets(0, 0, 0, 10);
+        gc.gridx = 0;
+        gc.weightx = 1.0;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        filterPanel.add(searchField, gc);
+
+        gc.gridx = 1;
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE;
+        filterPanel.add(fromDateField, gc);
+        gc.gridx = 2;
+        filterPanel.add(toDateField, gc);
 
         JButton filterButton = new JButton("Filter");
         JButton resetButton = new JButton("Reset");
+        JPanel filterActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        filterActions.setOpaque(false);
+        filterActions.add(filterButton);
+        filterActions.add(resetButton);
 
-        filterPanel.add(new JLabel("Search:"));
-        filterPanel.add(searchField);
-        filterPanel.add(new JLabel("From:"));
-        filterPanel.add(fromDateField);
-        filterPanel.add(new JLabel("To:"));
-        filterPanel.add(toDateField);
-        filterPanel.add(filterButton);
-        filterPanel.add(resetButton);
+        gc.gridx = 3;
+        gc.insets = new Insets(0, 0, 0, 0);
+        filterPanel.add(filterActions, gc);
 
         topPanel.add(filterPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
 
-        JPanel contentPanel = new JPanel(new BorderLayout(12, 0));
+        JPanel contentPanel = new JPanel(new BorderLayout(16, 0));
         contentPanel.setOpaque(false);
 
-        // Payment history
         JPanel historyPanel = new JPanel(new BorderLayout(0, 8));
         historyPanel.setOpaque(false);
+        historyPanel.add(sectionHeading("My Payment History"), BorderLayout.NORTH);
 
-        historyPanel.add(
-                new JLabel("My Payment History"), BorderLayout.NORTH);
+        paymentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        paymentTable.setFillsViewportHeight(true);
+        paymentTable.getTableHeader().setReorderingAllowed(false);
+        paymentTable.getColumnModel().getColumn(1).setPreferredWidth(180);
+        historyPanel.add(tableScroll(paymentTable), BorderLayout.CENTER);
 
-        paymentTable.setSelectionMode(
-                ListSelectionModel.SINGLE_SELECTION);
-
-        historyPanel.add(
-                new JScrollPane(paymentTable), BorderLayout.CENTER);
-
-        // Extra feature: View Payment Receipt.
         JButton receiptButton = new JButton("View Receipt");
         receiptButton.setEnabled(false);
 
-        JPanel receiptActions = new JPanel(
-                new FlowLayout(FlowLayout.LEFT));
-
+        JPanel receiptActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
         receiptActions.setOpaque(false);
         receiptActions.add(receiptButton);
-
         historyPanel.add(receiptActions, BorderLayout.SOUTH);
 
-        // Enable the button when a payment is selected.
         paymentTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                receiptButton.setEnabled(
-                        paymentTable.getSelectedRow() != -1);
+                receiptButton.setEnabled(paymentTable.getSelectedRow() != -1);
             }
         });
-
         receiptButton.addActionListener(e -> viewSelectedReceipt());
-
         contentPanel.add(historyPanel, BorderLayout.CENTER);
 
-        // Payment form
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(
-                formPanel, BoxLayout.Y_AXIS));
-        formPanel.setPreferredSize(new Dimension(225, 350));
-        formPanel.setBorder(BorderFactory.createTitledBorder(
-                "Pay for a Booking"));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(LINE),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)));
 
+        GridBagConstraints fg = new GridBagConstraints();
+        fg.gridx = 0;
+        fg.weightx = 1.0;
+        fg.fill = GridBagConstraints.HORIZONTAL;
+        fg.anchor = GridBagConstraints.NORTHWEST;
+        fg.insets = new Insets(0, 0, 7, 0);
+
+        fg.gridy = 0;
+        formPanel.add(sectionHeading("Pay for a Booking"), fg);
+        fg.gridy++;
+        fg.insets = new Insets(7, 0, 5, 0);
+        formPanel.add(fieldLabel("Unpaid Booking"), fg);
+
+        unpaidBookingBox.setFont(BODY_FONT);
+        unpaidBookingBox.setBackground(Color.WHITE);
+        unpaidBookingBox.setPreferredSize(new Dimension(245, 32));
+        unpaidBookingBox.setToolTipText("Select a booking ID, e.g. BKG001");
+        fg.gridy++;
+        fg.insets = new Insets(0, 0, 6, 0);
+        formPanel.add(unpaidBookingBox, fg);
+
+        fg.gridy++;
+        fg.insets = new Insets(9, 0, 5, 0);
+        formPanel.add(fieldLabel("Amount (RM)"), fg);
         amountField.setEditable(false);
+        styleField(amountField);
+        fg.gridy++;
+        fg.insets = new Insets(0, 0, 6, 0);
+        formPanel.add(amountField, fg);
 
-        formPanel.add(new JLabel("Unpaid Booking"));
-        formPanel.add(unpaidBookingBox);
-
-        formPanel.add(Box.createVerticalStrut(12));
-
-        formPanel.add(new JLabel("Amount (RM)"));
-        formPanel.add(amountField);
-
-        formPanel.add(Box.createVerticalStrut(12));
-
-        formPanel.add(new JLabel("Payment Method"));
-        formPanel.add(paymentMethodBox);
-
-        formPanel.add(Box.createVerticalStrut(15));
+        fg.gridy++;
+        fg.insets = new Insets(9, 0, 5, 0);
+        formPanel.add(fieldLabel("Payment Method"), fg);
+        paymentMethodBox.setFont(BODY_FONT);
+        paymentMethodBox.setBackground(Color.WHITE);
+        paymentMethodBox.setPreferredSize(new Dimension(245, 32));
+        fg.gridy++;
+        fg.insets = new Insets(0, 0, 12, 0);
+        formPanel.add(paymentMethodBox, fg);
 
         JButton clearButton = new JButton("Clear");
-
-        JPanel buttonPanel = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 5, 0));
-
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        buttonPanel.setOpaque(false);
         payButton.setEnabled(false);
-
         payButton.addActionListener(e -> paySelectedBooking());
-
         buttonPanel.add(payButton);
         buttonPanel.add(clearButton);
-        formPanel.add(buttonPanel);
+        fg.gridy++;
+        fg.insets = new Insets(0, 0, 0, 0);
+        formPanel.add(buttonPanel, fg);
 
-        contentPanel.add(formPanel, BorderLayout.EAST);
+        JPanel formColumn = new JPanel(new BorderLayout());
+        formColumn.setOpaque(false);
+        formColumn.setPreferredSize(new Dimension(285, 0));
+        JPanel rightPanels = new JPanel();
+        rightPanels.setOpaque(false);
+        rightPanels.setLayout(new BoxLayout(rightPanels, BoxLayout.Y_AXIS));
+        formPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rightPanels.add(formPanel);
+        rightPanels.add(Box.createVerticalStrut(14));
+
+        JPanel summaryPanel = buildPaymentSummary();
+        summaryPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rightPanels.add(summaryPanel);
+        formColumn.add(rightPanels, BorderLayout.NORTH);
+        contentPanel.add(formColumn, BorderLayout.EAST);
         add(contentPanel, BorderLayout.CENTER);
 
-        // Search and filter actions
-        filterButton.addActionListener(e ->
-                refreshPaymentHistory());
-
+        filterButton.addActionListener(e -> refreshPaymentHistory());
         resetButton.addActionListener(e -> {
             searchField.setText("");
             fromDateField.setText("");
@@ -196,10 +267,7 @@ public class ManagePaymentPanel extends JPanel {
             refreshPaymentHistory();
         });
 
-        // Booking selection updates the fee.
-        unpaidBookingBox.addActionListener(e ->
-                updateSelectedAmount());
-
+        unpaidBookingBox.addActionListener(e -> updateSelectedAmount());
         clearButton.addActionListener(e -> {
             unpaidBookingBox.setSelectedIndex(
                     unpaidBookingBox.getItemCount() > 0 ? 0 : -1);
@@ -208,9 +276,184 @@ public class ManagePaymentPanel extends JPanel {
         });
     }
 
+    private JPanel buildPaymentSummary() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(LINE),
+                BorderFactory.createEmptyBorder(14, 14, 14, 14)));
+        panel.add(sectionHeading("Payment Summary"), BorderLayout.NORTH);
+
+        JPanel values = new JPanel(new GridLayout(3, 2, 9, 9));
+        values.setOpaque(false);
+        values.add(summaryCard("Total Paid", totalPaidValue));
+        values.add(summaryCard("Outstanding", outstandingValue));
+        values.add(summaryCard("Payments Made", paymentsMadeValue));
+        values.add(summaryCard("Unpaid Bookings", unpaidBookingsValue));
+        values.add(summaryCard("Total Bookings", totalBookingsValue));
+        values.add(summaryCard("Payment Completion", paymentCompletionValue));
+        panel.add(values, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private static JPanel summaryCard(String title, JLabel value) {
+        JPanel card = new JPanel(new BorderLayout(0, 7));
+        card.setBackground(new Color(248, 250, 254));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(LINE),
+                BorderFactory.createEmptyBorder(12, 9, 12, 9)));
+        JLabel name = fieldLabel(title);
+        card.add(name, BorderLayout.NORTH);
+        card.add(value, BorderLayout.CENTER);
+        return card;
+    }
+
+    private static JLabel summaryValueLabel() {
+        JLabel value = new JLabel("—");
+        value.setFont(new Font("SansSerif", Font.BOLD, 16));
+        value.setForeground(BLUE_DARK);
+        return value;
+    }
+
+    private void refreshPaymentSummary() {
+        double totalPaid = 0;
+        int paymentsMade = 0;
+        for (Payment payment : paymentRepository.findByStudent(student.getId())) {
+            if ("PAID".equals(payment.getStatus())) {
+                totalPaid += payment.getAmount();
+                paymentsMade++;
+            }
+        }
+
+        double outstanding = 0;
+        int unpaidBookings = 0;
+        int totalBookings = 0;
+        int paidBookings = 0;
+
+        for (Booking booking : bookingRepository.findAll()) {
+            if (!booking.getStudentId().equals(student.getId())
+                    || !booking.isBooked()) {
+                continue;
+            }
+
+            ClassSession session = classRepository.findById(booking.getClassId());
+            if (session == null || session.isCancelled()) {
+                continue;
+            }
+
+            totalBookings++;
+            if ("PAID".equals(booking.getPaymentStatus())) {
+                paidBookings++;
+            } else if ("UNPAID".equals(booking.getPaymentStatus())) {
+                outstanding += session.getFee();
+                unpaidBookings++;
+            }
+        }
+
+        double paymentCompletion = totalBookings == 0
+                ? 0.0 : (100.0 * paidBookings / totalBookings);
+
+        // Summary values include all records, regardless of payment-history filters.
+        totalPaidValue.setText(String.format("RM %.2f", totalPaid));
+        outstandingValue.setText(String.format("RM %.2f", outstanding));
+        paymentsMadeValue.setText(Integer.toString(paymentsMade));
+        unpaidBookingsValue.setText(Integer.toString(unpaidBookings));
+        totalBookingsValue.setText(Integer.toString(totalBookings));
+        paymentCompletionValue.setText(String.format("%.0f%%", paymentCompletion));
+    }
+
+    private static JLabel fieldLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        label.setForeground(MUTED);
+        return label;
+    }
+
+    private static JLabel sectionHeading(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 15));
+        label.setForeground(TEXT);
+        return label;
+    }
+
+    private static void styleField(JTextField field) {
+        field.setFont(BODY_FONT);
+        field.setForeground(TEXT);
+        field.setBackground(Color.WHITE);
+        field.setPreferredSize(new Dimension(165, 32));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(LINE),
+                BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+    }
+
+    private static JScrollPane tableScroll(JTable table) {
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createLineBorder(LINE));
+        scroll.getViewport().setBackground(Color.WHITE);
+        return scroll;
+    }
+
+    private static void styleTable(JTable table) {
+        table.setFont(BODY_FONT);
+        table.setForeground(TEXT);
+        table.setRowHeight(30);
+        table.setGridColor(LINE);
+        table.setShowVerticalLines(false);
+        table.setSelectionBackground(BLUE_PALE);
+        table.setSelectionForeground(TEXT);
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+        table.getTableHeader().setBackground(BLUE_PALE);
+        table.getTableHeader().setForeground(BLUE_DARK);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 34));
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable t, Object value, boolean selected, boolean focused,
+                    int row, int column) {
+                super.getTableCellRendererComponent(
+                        t, value, selected, focused, row, column);
+                setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 7));
+                setBackground(selected ? BLUE_PALE
+                        : (row % 2 == 0 ? Color.WHITE : new Color(248, 250, 254)));
+                setForeground(TEXT);
+                return this;
+            }
+        });
+    }
+
+    // Draw the hint without storing it as input text.
+    private static class HintTextField extends JTextField {
+        private final String hint;
+
+        HintTextField(String hint, int columns) {
+            super(columns);
+            this.hint = hint;
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            super.paintComponent(graphics);
+            if (!getText().isEmpty()) {
+                return;
+            }
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setColor(new Color(145, 154, 167));
+                g.setFont(getFont().deriveFont(Font.ITALIC));
+                Insets insets = getInsets();
+                FontMetrics fm = g.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g.drawString(hint, insets.left, y);
+            } finally {
+                g.dispose();
+            }
+        }
+    }
+
     private void refreshData() {
         refreshPaymentHistory();
         refreshUnpaidBookings();
+        refreshPaymentSummary();
     }
 
     private void refreshPaymentHistory() {

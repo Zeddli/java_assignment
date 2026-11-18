@@ -8,6 +8,7 @@ import repository.ClassRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
 import java.time.LocalDate;
@@ -17,18 +18,26 @@ import java.time.format.DateTimeFormatter;
 
 public class BookClassesPanel extends JPanel {
 
+    private static final Color BLUE = new Color(69, 84, 109);
+    private static final Color BLUE_DARK = new Color(55, 68, 88);
+    private static final Color BLUE_PALE = new Color(237, 240, 245);
+    private static final Color TEXT = new Color(40, 51, 69);
+    private static final Color MUTED = new Color(101, 114, 132);
+    private static final Color LINE = new Color(218, 227, 239);
+    private static final Font BODY_FONT = new Font("SansSerif", Font.PLAIN, 13);
+
     private final User student;
     private final ClassRepository classRepository =
             new ClassRepository();
     private final BookingRepository bookingRepository =
             new BookingRepository();
 
-    private final JTextField searchField = new JTextField(14);
+    private final JTextField searchField = new HintTextField("e.g. CLS003 or Karate", 17);
     private final JComboBox<String> disciplineFilter =
             new JComboBox<>(new String[]{
         "All", "Karate", "Judo", "Taekwondo", "MMA"
     });
-    private final JTextField dateField = new JTextField(10);
+    private final JTextField dateField = new HintTextField("yyyy-MM-dd", 11);
 
     private final DefaultTableModel classesModel =
             createTableModel("Class ID", "Discipline",
@@ -45,53 +54,37 @@ public class BookClassesPanel extends JPanel {
     public BookClassesPanel(User student) {
         this.student = student;
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(12, 12));
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
 
         buildInterface();
 
-        // Improve table readability.
-        classesTable.setRowHeight(30);
-        bookingsTable.setRowHeight(30);
+        styleTable(classesTable);
+        styleTable(bookingsTable);
 
-        // Allow only one row to be selected at a time.
         classesTable.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION);
 
         bookingsTable.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION);
 
-        // Fill the remaining table area neatly.
         classesTable.setFillsViewportHeight(true);
         bookingsTable.setFillsViewportHeight(true);
 
-        // Prevent users from dragging table columns into a different order.
         classesTable.getTableHeader().setReorderingAllowed(false);
         bookingsTable.getTableHeader().setReorderingAllowed(false);
 
-        // Improve column sizing.
         classesTable.getColumnModel().getColumn(4)
                 .setPreferredWidth(150);
 
         bookingsTable.getColumnModel().getColumn(0)
                 .setPreferredWidth(110);
 
-        // Improve table header appearance.
-        Font tableHeaderFont = new Font("SansSerif", Font.BOLD, 13);
-
-        classesTable.getTableHeader().setFont(tableHeaderFont);
-        bookingsTable.getTableHeader().setFont(tableHeaderFont);
-
-        classesTable.getTableHeader().setPreferredSize(
-                new Dimension(0, 35));
-
-        bookingsTable.getTableHeader().setPreferredSize(
-                new Dimension(0, 35));
 
         refreshTables();
 
-        // Refresh booking records whenever this panel becomes visible.
+        // Reload bookings when returning from another Student screen.
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
@@ -111,43 +104,74 @@ public class BookClassesPanel extends JPanel {
 
     private void buildInterface() {
 
-        // Page heading
-        JPanel topPanel = new JPanel(new BorderLayout(0, 10));
+        JPanel topPanel = new JPanel(new BorderLayout(0, 14));
         topPanel.setOpaque(false);
 
+        JPanel headingPanel = new JPanel(new GridLayout(2, 1, 0, 3));
+        headingPanel.setOpaque(false);
         JLabel heading = new JLabel("Book Classes");
-        heading.setFont(new Font("SansSerif", Font.BOLD, 20));
-        topPanel.add(heading, BorderLayout.NORTH);
+        heading.setFont(new Font("SansSerif", Font.BOLD, 21));
+        heading.setForeground(TEXT);
+        JLabel subheading = new JLabel("Find training sessions and manage your bookings");
+        subheading.setFont(BODY_FONT);
+        subheading.setForeground(MUTED);
+        headingPanel.add(heading);
+        headingPanel.add(subheading);
+        topPanel.add(headingPanel, BorderLayout.NORTH);
 
-        // Search toolbar
-        JPanel searchPanel = new JPanel(new FlowLayout(
-                FlowLayout.LEFT, 8, 0));
+        JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setOpaque(false);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridy = 0;
+        gc.anchor = GridBagConstraints.WEST;
+        gc.insets = new Insets(0, 0, 5, 10);
+
+        gc.gridx = 0;
+        searchPanel.add(fieldLabel("Search class or instructor"), gc);
+        gc.gridx = 1;
+        searchPanel.add(fieldLabel("Discipline"), gc);
+        gc.gridx = 2;
+        searchPanel.add(fieldLabel("Date"), gc);
+
+        styleField(searchField);
+        styleField(dateField);
+        disciplineFilter.setFont(BODY_FONT);
+        disciplineFilter.setBackground(Color.WHITE);
+        disciplineFilter.setPreferredSize(new Dimension(122, 32));
+
+        gc.gridy = 1;
+        gc.insets = new Insets(0, 0, 0, 10);
+        gc.gridx = 0;
+        gc.weightx = 1.0;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        searchPanel.add(searchField, gc);
+        gc.gridx = 1;
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE;
+        searchPanel.add(disciplineFilter, gc);
+        gc.gridx = 2;
+        searchPanel.add(dateField, gc);
 
         JButton searchButton = new JButton("Search");
         JButton showAllButton = new JButton("Show All");
-
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(disciplineFilter);
-        searchPanel.add(new JLabel("Date:"));
-        searchPanel.add(dateField);
-        searchPanel.add(searchButton);
-        searchPanel.add(showAllButton);
+        JPanel filterActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        filterActions.setOpaque(false);
+        filterActions.add(searchButton);
+        filterActions.add(showAllButton);
+        gc.gridx = 3;
+        gc.insets = new Insets(0, 0, 0, 0);
+        searchPanel.add(filterActions, gc);
 
         topPanel.add(searchPanel, BorderLayout.SOUTH);
         add(topPanel, BorderLayout.NORTH);
 
-        // Tables
-        JPanel tablesPanel = new JPanel(new GridLayout(2, 1, 0, 20));
+        JPanel tablesPanel = new JPanel(new GridLayout(2, 1, 0, 17));
         tablesPanel.setOpaque(false);
 
-        JPanel availablePanel = new JPanel(new BorderLayout(0, 5));
+        JPanel availablePanel = new JPanel(new BorderLayout(0, 8));
         availablePanel.setOpaque(false);
-        availablePanel.add(
-                new JLabel("Available Classes"), BorderLayout.NORTH);
-        availablePanel.add(
-                new JScrollPane(classesTable), BorderLayout.CENTER);
+        availablePanel.add(sectionHeading("Available Classes"), BorderLayout.NORTH);
+        availablePanel.add(tableScroll(classesTable), BorderLayout.CENTER);
 
         JButton bookButton = new JButton("Book Selected Class");
         bookButton.setEnabled(false);
@@ -161,11 +185,10 @@ public class BookClassesPanel extends JPanel {
         bookButton.addActionListener(e -> bookSelectedClass());
 
         JPanel bookActions = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 10, 8));
+                new FlowLayout(FlowLayout.LEFT, 8, 5));
         bookActions.setOpaque(false);
         bookActions.add(bookButton);
 
-        // Extra feature: My Training Calendar.
         JButton calendarButton = new JButton("My Training Calendar");
 
         calendarButton.addActionListener(e -> {
@@ -183,12 +206,10 @@ public class BookClassesPanel extends JPanel {
         availablePanel.add(bookActions, BorderLayout.SOUTH);
         tablesPanel.add(availablePanel);
 
-        JPanel bookingsPanel = new JPanel(new BorderLayout(0, 5));
+        JPanel bookingsPanel = new JPanel(new BorderLayout(0, 8));
         bookingsPanel.setOpaque(false);
-        bookingsPanel.add(
-                new JLabel("My Bookings"), BorderLayout.NORTH);
-        bookingsPanel.add(
-                new JScrollPane(bookingsTable), BorderLayout.CENTER);
+        bookingsPanel.add(sectionHeading("My Bookings"), BorderLayout.NORTH);
+        bookingsPanel.add(tableScroll(bookingsTable), BorderLayout.CENTER);
 
         JButton rescheduleButton =
                 new JButton("Reschedule Selected");
@@ -197,7 +218,6 @@ public class BookClassesPanel extends JPanel {
         rescheduleButton.setEnabled(false);
         cancelButton.setEnabled(false);
 
-        // Enable cancellation when a booking is selected.
         bookingsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = bookingsTable.getSelectedRow();
@@ -221,12 +241,11 @@ public class BookClassesPanel extends JPanel {
             }
         });
 
-        // Handle cancellation when clicked.
         rescheduleButton.addActionListener(e -> rescheduleSelectedBooking());
         cancelButton.addActionListener(e -> cancelSelectedBooking());
 
         JPanel bookingActions = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 10, 8));
+                new FlowLayout(FlowLayout.LEFT, 8, 5));
         bookingActions.setOpaque(false);
         bookingActions.add(rescheduleButton);
         bookingActions.add(cancelButton);
@@ -236,7 +255,6 @@ public class BookClassesPanel extends JPanel {
 
         add(tablesPanel, BorderLayout.CENTER);
 
-        // Search actions
         searchButton.addActionListener(e -> refreshTables());
 
         showAllButton.addActionListener(e -> {
@@ -245,6 +263,94 @@ public class BookClassesPanel extends JPanel {
             disciplineFilter.setSelectedIndex(0);
             refreshTables();
         });
+    }
+
+    private static JLabel fieldLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        label.setForeground(MUTED);
+        return label;
+    }
+
+    private static JLabel sectionHeading(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("SansSerif", Font.BOLD, 15));
+        label.setForeground(TEXT);
+        return label;
+    }
+
+    private static void styleField(JTextField field) {
+        field.setFont(BODY_FONT);
+        field.setForeground(TEXT);
+        field.setBackground(Color.WHITE);
+        field.setPreferredSize(new Dimension(165, 32));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(LINE),
+                BorderFactory.createEmptyBorder(4, 9, 4, 9)));
+    }
+
+    private static JScrollPane tableScroll(JTable table) {
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createLineBorder(LINE));
+        scroll.getViewport().setBackground(Color.WHITE);
+        return scroll;
+    }
+
+    private static void styleTable(JTable table) {
+        table.setFont(BODY_FONT);
+        table.setForeground(TEXT);
+        table.setRowHeight(30);
+        table.setGridColor(LINE);
+        table.setShowVerticalLines(false);
+        table.setSelectionBackground(BLUE_PALE);
+        table.setSelectionForeground(TEXT);
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+        table.getTableHeader().setBackground(BLUE_PALE);
+        table.getTableHeader().setForeground(BLUE_DARK);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 34));
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable t, Object value, boolean selected, boolean focused,
+                    int row, int column) {
+                super.getTableCellRendererComponent(
+                        t, value, selected, focused, row, column);
+                setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 7));
+                setBackground(selected ? BLUE_PALE
+                        : (row % 2 == 0 ? Color.WHITE : new Color(248, 250, 254)));
+                setForeground(TEXT);
+                return this;
+            }
+        });
+    }
+
+    // Hints are drawn separately so empty search fields remain empty values.
+    private static class HintTextField extends JTextField {
+        private final String hint;
+
+        HintTextField(String hint, int columns) {
+            super(columns);
+            this.hint = hint;
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            super.paintComponent(graphics);
+            if (!getText().isEmpty()) {
+                return;
+            }
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.setColor(new Color(145, 154, 167));
+                g.setFont(getFont().deriveFont(Font.ITALIC));
+                Insets insets = getInsets();
+                FontMetrics fm = g.getFontMetrics();
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g.drawString(hint, insets.left, y);
+            } finally {
+                g.dispose();
+            }
+        }
     }
 
     private void refreshTables() {
@@ -343,7 +449,6 @@ public class BookClassesPanel extends JPanel {
         String classId = classesModel.getValueAt(
                 modelRow, 0).toString();
 
-        // Get the class session from the repository.
         ClassSession session = classRepository.findById(classId);
 
         if (session == null) {
@@ -353,7 +458,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Check that the class is open.
         if (!"OPEN".equalsIgnoreCase(session.getStatus())) {
             JOptionPane.showMessageDialog(this,
                     "This class is not available for booking.");
@@ -378,7 +482,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Check available capacity.
         int bookedCount = bookingRepository
                 .findBookedByClass(classId).size();
 
@@ -408,7 +511,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Ask for confirmation.
         int confirmation = JOptionPane.showConfirmDialog(
                 this,
                 "Book " + session.getDiscipline()
@@ -424,7 +526,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Create and save the booking.
         try {
             String bookingId = bookingRepository.nextId("BKG");
 
@@ -472,7 +573,6 @@ public class BookClassesPanel extends JPanel {
         int modelRow = bookingsTable.convertRowIndexToModel(selectedRow);
         String bookingId = bookingsModel.getValueAt(modelRow, 0).toString();
 
-        // Retrieve the latest booking record.
         Booking booking = bookingRepository.findById(bookingId);
 
         if (booking == null || !booking.getStudentId().equals(student.getId())) {
@@ -489,7 +589,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Paid bookings require an agreed refund policy.
+        // Paid bookings are handled by the administrator to avoid unsupported refunds.
         if (!"UNPAID".equals(booking.getPaymentStatus())) {
             JOptionPane.showMessageDialog(this,
                     "Paid bookings cannot be cancelled here.\n"
@@ -535,7 +635,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Booking is immutable, so create a replacement record.
+        // Keep the booking ID so existing references remain valid.
         Booking cancelledBooking = new Booking(
                 booking.getId(),
                 booking.getStudentId(),
@@ -627,7 +727,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Find other eligible classes.
         java.util.List<ClassSession> availableClasses =
                 new java.util.ArrayList<>();
 
@@ -675,7 +774,7 @@ public class BookClassesPanel extends JPanel {
                 continue;
             }
 
-            // Exclude replacement classes that overlap other bookings
+            // Ignore the original booking when checking the new time slot.
             if (hasOverlappingBooking(session, booking.getId())) {
                 continue;
             }
@@ -697,7 +796,6 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Ask the student to select a replacement class.
         Object selectedOption = JOptionPane.showInputDialog(
                 this,
                 "Choose a new class for booking " + bookingId + ":",
@@ -720,7 +818,6 @@ public class BookClassesPanel extends JPanel {
 
         ClassSession replacement = availableClasses.get(selectedIndex);
 
-        // Recheck availability using the latest records.
         ClassSession latestClass = classRepository.findById(
                 replacement.getId());
 
@@ -790,7 +887,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Recheck the booking after the confirmation dialog.
+        // The booking may have changed while the confirmation dialog was open.
         Booking latestBooking = bookingRepository.findById(bookingId);
 
         if (latestBooking == null
@@ -806,7 +903,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Recheck the replacement class after confirmation.
+        // Capacity and scheduling may also have changed during confirmation.
         ClassSession confirmedClass =
                 classRepository.findById(latestClass.getId());
 
@@ -826,7 +923,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        // Replace the existing booking while keeping its booking ID.
+        // Rescheduling retains the booking ID for linked records.
         Booking updatedBooking = new Booking(
                 booking.getId(),
                 booking.getStudentId(),
@@ -913,14 +1010,13 @@ public class BookClassesPanel extends JPanel {
                 LocalTime existingEnd =
                         LocalTime.parse(existingClass.getEndTime());
 
-                // Standard time-interval overlap check.
                 if (newStart.isBefore(existingEnd)
                         && existingStart.isBefore(newEnd)) {
                     return true;
                 }
 
             } catch (RuntimeException ex) {
-                // Reject if an existing same-day time cannot be checked.
+                // Avoid accepting a booking when an existing time is invalid.
                 return true;
             }
         }
