@@ -52,9 +52,23 @@ public final class ModuleSetup {
 
         // Uncomment and update as team members finish their respective role screens:
 
-        // if (Role.STUDENT.equals(user.getRole())) {
-        //     dashboard.registerModule("Book Class", new BookClassPanel());
-        // }
+        // Student Modules
+        if (Role.STUDENT.equals(user.getRole())) {
+            dashboard.registerModule(
+                    "Book Classes",
+                    new BookClassesPanel(user)
+            );
+
+            dashboard.registerModule(
+                    "Manage Payment",
+                    new ManagePaymentPanel(user)
+            );
+
+            dashboard.registerModule(
+                    "Instructor Ratings",
+                    new InstructorRatingPanel(user)
+            );
+        }
         // if (Role.INSTRUCTOR.equals(user.getRole())) {
         //     dashboard.registerModule("View Schedule", new InstructorSchedulePanel());
         // }
