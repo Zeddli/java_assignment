@@ -21,3 +21,4 @@ STU010|STUDENT|priya|test123|Priya Nair|priya@mail.com|0171230010|2003-12-25|ACT
 STU011|STUDENT|zara|test123|Zara Ong|zara@mail.com|0171230011|2006-06-11|ACTIVE
 STU012|STUDENT|haziq|test123|Haziq Ali|haziq@mail.com|0171230012|2002-04-07|ACTIVE
 INS004|INSTRUCTOR|kahyee|test123|Wong Kah Yee|kahyee@sdams.my|0171230013|Judo|ACTIVE
+ADM003|ADMIN|justinbieber|Aaa123456|The Weekend|justin@admin.co|01125632563||INACTIVE

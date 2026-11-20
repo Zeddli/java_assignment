@@ -25,6 +25,11 @@ public final class ModuleSetup {
                     "Revenue Report",
                     new RevenueReportPanel()
             );
+
+            dashboard.registerModule(
+                    "Manage Administrators",
+                    new ManageAdministratorsPanel()
+            );
         }
 
         // Attendance Officer Modules
