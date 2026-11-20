@@ -30,6 +30,12 @@ public final class ModuleSetup {
                     "Manage Administrators",
                     new ManageAdministratorsPanel()
             );
+
+            dashboard.registerModule(
+                    "Manage Staff",
+                    new StaffReportPanel()
+
+            );
         }
 
         // Attendance Officer Modules
