@@ -2,13 +2,11 @@ package service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import model.Role;
 import model.User;
 import repository.UserRepository;
 import util.TextFileHandler;
 import util.ValidationException;
-import util.Validator;
 
 /**
  * Shared account logic for AD1 (staff) and AD2 (students): search, add, update, delete, activate.
@@ -22,11 +20,6 @@ import util.Validator;
 public abstract class AccountService {
     public static final String ACTIVE = "ACTIVE";
     public static final String INACTIVE = "INACTIVE";
-
-    private static final Pattern EMAIL = Pattern.compile("^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+$");
-    private static final Pattern USERNAME = Pattern.compile("^[A-Za-z0-9._]{3,20}$");
-    private static final Pattern NAME = Pattern.compile("^[A-Za-z][A-Za-z .'/-]{1,49}$");
-    private static final Pattern PHONE = Pattern.compile("^0\\d{8,10}$"); // after removing spaces and dashes
 
     protected final UserRepository userRepo = new UserRepository();
 
@@ -140,58 +133,22 @@ public abstract class AccountService {
                 f.getFullName(), f.getEmail(), normalisePhone(f.getPhone()), f.getExtra(), status);
     }
 
-    /** Common checks for every account, then the subclass-specific check (validateExtra). */
+    /** Common checks for every account (AccountRules), then the subclass-specific check (validateExtra). */
     private void validate(AccountForm f, String ownId) throws ValidationException {
         if (f.getRole() == null || !manageableRoles().contains(f.getRole())) {
             throw new ValidationException(AccountForm.ROLE, "Choose a valid role.");
         }
-        noPipe(AccountForm.FULL_NAME, f.getFullName());
-        noPipe(AccountForm.USERNAME, f.getUsername());
-        noPipe(AccountForm.PASSWORD, f.getPassword());
-        noPipe(AccountForm.EMAIL, f.getEmail());
-        noPipe(AccountForm.PHONE, f.getPhone());
-        noPipe(AccountForm.EXTRA, f.getExtra());
-
-        if (Validator.isBlank(f.getFullName())) {
-            throw new ValidationException(AccountForm.FULL_NAME, "Full name is required.");
-        }
-        if (!NAME.matcher(f.getFullName()).matches()) {
-            throw new ValidationException(AccountForm.FULL_NAME,
-                    "Full name: 2-50 letters (spaces . ' / - allowed).");
-        }
-        if (Validator.isBlank(f.getUsername())) {
-            throw new ValidationException(AccountForm.USERNAME, "Username is required.");
-        }
-        if (!USERNAME.matcher(f.getUsername()).matches()) {
-            throw new ValidationException(AccountForm.USERNAME,
-                    "Username: 3-20 letters, digits, dot or underscore.");
-        }
+        AccountRules.noPipe(AccountForm.EXTRA, f.getExtra());
+        AccountRules.fullName(AccountForm.FULL_NAME, f.getFullName());
+        AccountRules.username(AccountForm.USERNAME, f.getUsername());
         if (isUsernameTaken(f.getUsername(), ownId)) {
             throw new ValidationException(AccountForm.USERNAME,
                     "Username \"" + f.getUsername() + "\" is already used.");
         }
-        if (!f.getPassword().isEmpty() && (f.getPassword().length() < 6 || f.getPassword().contains(" "))) {
-            throw new ValidationException(AccountForm.PASSWORD,
-                    "Password: at least 6 characters, no spaces.");
-        }
-        if (Validator.isBlank(f.getEmail())) {
-            throw new ValidationException(AccountForm.EMAIL, "Email is required.");
-        }
-        if (!EMAIL.matcher(f.getEmail()).matches()) {
-            throw new ValidationException(AccountForm.EMAIL, "Email format is invalid (e.g. name@sda.my).");
-        }
-        if (Validator.isBlank(f.getPhone())) {
-            throw new ValidationException(AccountForm.PHONE, "Phone is required.");
-        }
-        if (!PHONE.matcher(normalisePhone(f.getPhone())).matches()) {
-            throw new ValidationException(AccountForm.PHONE,
-                    "Phone: 9-11 digits starting with 0 (e.g. 012-345 6789).");
-        }
+        if (!f.getPassword().isEmpty()) AccountRules.password(AccountForm.PASSWORD, f.getPassword());
+        AccountRules.email(AccountForm.EMAIL, f.getEmail());
+        AccountRules.phone(AccountForm.PHONE, f.getPhone());
         validateExtra(f); // POLYMORPHISM: StaffService or StudentService decides
-    }
-
-    private static void noPipe(String field, String value) throws ValidationException {
-        if (Validator.hasPipe(value)) throw new ValidationException(field, "The | character is not allowed.");
     }
 
     /** Usernames are unique across ALL users (every role logs in from the same screen). */
@@ -202,9 +159,9 @@ public abstract class AccountService {
         return false;
     }
 
-    /** Stores phones as digits only, so "012-345 6789" and "0123456789" are the same number. */
+    /** Stores phones as digits only (see AccountRules). */
     protected static String normalisePhone(String phone) {
-        return phone == null ? "" : phone.replaceAll("[\\s-]", "");
+        return AccountRules.normalisePhone(phone);
     }
 
     /**

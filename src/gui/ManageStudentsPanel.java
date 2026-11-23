@@ -14,15 +14,15 @@ import service.StudentService;
  */
 public class ManageStudentsPanel extends AccountPanel {
     private final JTextField txtDob = new JTextField();
-    private final JButton btnHistory = new JButton("View history");
+    private final JButton btnHistory = new AdminButton("View history");
     private final StudentService students;
 
-    public ManageStudentsPanel() {
-        this(new StudentService());
+    public ManageStudentsPanel(String adminId) {
+        this(adminId, new StudentService());
     }
 
-    private ManageStudentsPanel(StudentService students) {
-        super("Manage Students", "Add, view, search, update and delete student accounts",
+    private ManageStudentsPanel(String adminId, StudentService students) {
+        super(adminId, "Manage Students", "Add, view, search, update and delete student accounts",
               "e.g. STU001, Nurul or nurul@mail.com", "Student details",
               students,
               "ID", "Name", "Email", "Phone", "Status");
@@ -38,7 +38,7 @@ public class ManageStudentsPanel extends AccountPanel {
     }
 
     @Override
-    protected int[] columnWidths() { return new int[]{55, 100, 130, 85, 65}; }
+    protected int[] columnWidths() { return new int[]{55, 100, 125, 85, 72}; }
 
     @Override
     protected void addExtraFields() { addField("Date of birth (yyyy-MM-dd)", txtDob, AccountForm.EXTRA); }
