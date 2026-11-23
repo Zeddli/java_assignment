@@ -70,6 +70,7 @@ public class WelcomeHeader extends JPanel {
         String name = me == null ? "Administrator" : me.getFullName();
         lblGreeting.setText(greeting(LocalTime.now()) + ", " + name);
         lblDate.setText(LocalDate.now().format(DATE));
+        lblGreeting.setVisible(userId != null); // no user given: show only the date
     }
 
     /** "Good morning" before 12:00, "Good afternoon" before 18:00, otherwise "Good evening". */

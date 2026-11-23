@@ -79,6 +79,16 @@ public abstract class AccountPanel extends JPanel {
     }
 
     /**
+     * Same as above without a logged-in user (no personal greeting in the header).
+     * Kept so screens written against the original constructor, such as the Manager's
+     * ManageAdministratorsPanel (MG1), still compile unchanged.
+     */
+    protected AccountPanel(String title, String subtitle, String searchHint, String formTitle,
+                           AccountService service, String... columns) {
+        this(null, title, subtitle, searchHint, formTitle, service, columns);
+    }
+
+    /**
      * Builds the screen. Subclasses call this LAST in their constructor, because the hooks
      * (addTopFields, addExtraFields...) use the subclass's own fields, which Java only
      * initialises after this parent constructor has finished.
