@@ -23,8 +23,7 @@ import util.ValidationException;
  * POLYMORPHISM: {@code service} is a StaffService or StudentService behind an AccountService type.
  */
 public abstract class AccountPanel extends JPanel {
-    protected static final Color ERROR = new Color(185, 0, 0);
-    protected static final Color PRIMARY = new Color(52, 94, 210);
+    protected static final Color ERROR = AdminTheme.ERROR;
     private static final Border ERROR_BORDER = BorderFactory.createLineBorder(ERROR, 2);
 
     protected final AccountService service;
@@ -51,11 +50,11 @@ public abstract class AccountPanel extends JPanel {
     private final JLabel lblFormTitle = new JLabel();
     private final JLabel lblError = new JLabel(" ");
 
-    private final JButton btnAdd = new JButton("Add");
-    private final JButton btnUpdate = new JButton("Update");
-    private final JButton btnDelete = new JButton("Delete");
-    private final JButton btnStatus = new JButton("Deactivate");
-    private final JButton btnClear = new JButton("Clear");
+    private final JButton btnAdd = new AdminButton("Add", AdminButton.Style.PRIMARY);
+    private final JButton btnUpdate = new AdminButton("Update");
+    private final JButton btnDelete = new AdminButton("Delete", AdminButton.Style.DANGER);
+    private final JButton btnStatus = new AdminButton("Deactivate");
+    private final JButton btnClear = new AdminButton("Clear");
 
     /** Field key (AccountForm.*) -> input box, so errors can highlight the right box. */
     private final Map<String, JComponent> fieldsByKey = new LinkedHashMap<>();
@@ -63,11 +62,16 @@ public abstract class AccountPanel extends JPanel {
 
     private String selectedId; // null = nothing selected (Add mode)
     private final String title, subtitle, searchHint, formTitle;
+    private final String adminId;           // logged-in administrator (for the welcome header)
+    private final int statusColumn;         // index of the "Status" column, or -1
+    private WelcomeHeader welcome;
 
-    protected AccountPanel(String title, String subtitle, String searchHint, String formTitle,
+    protected AccountPanel(String adminId, String title, String subtitle, String searchHint, String formTitle,
                            AccountService service, String... columns) {
         this.service = service;
+        this.adminId = adminId;
         this.table = new SortableTable(columns);
+        this.statusColumn = java.util.Arrays.asList(columns).indexOf("Status");
         this.title = title;
         this.subtitle = subtitle;
         this.searchHint = searchHint;
@@ -83,6 +87,7 @@ public abstract class AccountPanel extends JPanel {
         setLayout(new BorderLayout(10, 8));
         setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
         if (columnWidths() != null) table.setColumnWidths(columnWidths());
+        AdminTheme.styleTable(table, statusColumn);
         add(buildHeader(title, subtitle, searchHint), BorderLayout.NORTH);
         add(buildTableArea(), BorderLayout.CENTER);
         add(buildForm(formTitle), BorderLayout.EAST);
@@ -92,7 +97,7 @@ public abstract class AccountPanel extends JPanel {
         // reload whenever the screen is opened, so changes made elsewhere show up
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
-            public void componentShown(java.awt.event.ComponentEvent e) { refresh(); }
+            public void componentShown(java.awt.event.ComponentEvent e) { welcome.refresh(); refresh(); }
         });
     }
 
@@ -137,6 +142,25 @@ public abstract class AccountPanel extends JPanel {
     /** Called when a row is double-clicked. Default: nothing. */
     protected void onRowDoubleClicked(User u) { }
 
+    /** Sets the toolbar's role filter (used when the Overview opens this screen). Default: no role filter. */
+    protected void setFilterRole(Role role) { }
+
+    // =================== called by the Overview dashboard ===================
+
+    /**
+     * Shows the list filtered by role (null = all) and status (ACTIVE, INACTIVE or null = all),
+     * with the search box cleared. Used when an Overview card is clicked.
+     */
+    public final void applyFilters(Role role, String status) {
+        txtSearch.setText("");
+        setFilterRole(role);
+        cmbStatus.setSelectedIndex(AccountService.ACTIVE.equals(status) ? 1
+                : AccountService.INACTIVE.equals(status) ? 2 : 0);
+        table.clearSelection();
+        clearForm();
+        refresh();
+    }
+
     // =================== helpers for subclasses ===================
 
     /** Adds "label + component" to the side form and remembers it for error highlighting. */
@@ -146,7 +170,7 @@ public abstract class AccountPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1;
         c.gridy = formRow++;
-        c.insets = new Insets(3, 0, 0, 0);
+        c.insets = new Insets(2, 0, 0, 0);
         form.add(new JLabel(label), c);
         c.gridy = formRow++;
         c.insets = new Insets(0, 0, 0, 0);
@@ -176,12 +200,13 @@ public abstract class AccountPanel extends JPanel {
         if (cmbStatus.getSelectedIndex() == 2) status = AccountService.INACTIVE;
         try {
             List<User> users = service.search(txtSearch.getText(), filterRole(), status);
-            table.clearRows();
+            List<Object[]> rows = new java.util.ArrayList<>();
             int active = 0;
             for (User u : users) {
-                table.addRow(rowFor(u));
+                rows.add(rowFor(u));
                 if (u.isActive()) active++;
             }
+            table.setRows(rows);
             lblCount.setText(users.isEmpty()
                     ? "No records found"
                     : users.size() + " record" + (users.size() == 1 ? "" : "s") + " shown  ·  "
@@ -195,18 +220,15 @@ public abstract class AccountPanel extends JPanel {
     // =================== layout ===================
 
     private JPanel buildHeader(String title, String subtitle, String searchHint) {
-        JLabel heading = new JLabel(title);
-        heading.setFont(heading.getFont().deriveFont(Font.BOLD, 20f));
-        JLabel sub = new JLabel(subtitle);
-        sub.setForeground(Color.DARK_GRAY);
+        welcome = new WelcomeHeader(adminId, title, subtitle);
 
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         addFilterControls(toolbar);
         toolbar.add(cmbStatus);
         txtSearch.setToolTipText("Search by ID, name, username or email, " + searchHint);
         toolbar.add(txtSearch);
-        JButton btnSearch = new JButton("Search");
-        JButton btnShowAll = new JButton("Show all");
+        JButton btnSearch = new AdminButton("Search", AdminButton.Style.PRIMARY);
+        JButton btnShowAll = new AdminButton("Show all");
         btnSearch.addActionListener(e -> refresh());
         btnShowAll.addActionListener(e -> showAll());
         txtSearch.addActionListener(e -> refresh()); // Enter key searches too
@@ -215,7 +237,7 @@ public abstract class AccountPanel extends JPanel {
 
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-        for (JComponent c : new JComponent[]{heading, sub, (JComponent) Box.createVerticalStrut(8), toolbar}) {
+        for (JComponent c : new JComponent[]{welcome, (JComponent) Box.createVerticalStrut(8), toolbar}) {
             c.setAlignmentX(LEFT_ALIGNMENT);
             header.add(c);
         }
@@ -225,18 +247,18 @@ public abstract class AccountPanel extends JPanel {
     private JPanel buildTableArea() {
         JPanel area = new JPanel(new BorderLayout(0, 4));
         area.add(new JScrollPane(table), BorderLayout.CENTER);
-        lblCount.setForeground(Color.DARK_GRAY);
+        lblCount.setForeground(AdminTheme.TEXT_MUTED);
         area.add(lblCount, BorderLayout.SOUTH);
         return area;
     }
 
     private JComponent buildForm(String formTitle) {
-        form.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+        form.setBorder(AdminTheme.cardBorder());
+        form.setBackground(Color.WHITE);
 
         lblFormTitle.setText(formTitle);
         lblFormTitle.setFont(lblFormTitle.getFont().deriveFont(Font.BOLD, 14f));
+        lblFormTitle.setForeground(AdminTheme.ACCENT);
         addFormRow(lblFormTitle);
         addTopFields();
         addField("Full name", txtFullName, AccountForm.FULL_NAME);
@@ -251,8 +273,6 @@ public abstract class AccountPanel extends JPanel {
         lblError.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
         addFormRow(lblError);
 
-        btnAdd.setFont(btnAdd.getFont().deriveFont(Font.BOLD));
-        btnDelete.setForeground(ERROR);
         JPanel row1 = new JPanel(new GridLayout(1, 3, 2, 0));
         row1.add(btnAdd); row1.add(btnUpdate); row1.add(btnDelete);
         JPanel row2 = new JPanel(new GridLayout(1, 0, 2, 0));
@@ -263,6 +283,7 @@ public abstract class AccountPanel extends JPanel {
         buttons.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
         buttons.add(row1); buttons.add(row2);
         if (row3.getComponentCount() > 0) buttons.add(row3);
+        for (JPanel p : new JPanel[]{row1, row2, row3, buttons}) p.setOpaque(false); // white card shows through
         addFormRow(buttons);
 
         // push everything to the top of the form
@@ -274,6 +295,7 @@ public abstract class AccountPanel extends JPanel {
         JScrollPane scroll = new JScrollPane(form, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(Color.WHITE);
         scroll.getVerticalScrollBar().setUnitIncrement(12);
         scroll.setPreferredSize(new Dimension(290, 0));
         return scroll;
@@ -502,7 +524,7 @@ public abstract class AccountPanel extends JPanel {
     }
 
     private void info(String message) {
-        lblError.setForeground(new Color(0, 120, 60));
+        lblError.setForeground(AdminTheme.SUCCESS);
         lblError.setText("<html>" + escape(message) + "</html>");
     }
 
@@ -515,3 +537,4 @@ public abstract class AccountPanel extends JPanel {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }
+

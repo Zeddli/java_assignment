@@ -41,6 +41,19 @@ public class SortableTable extends JTable {
 
     public void addRow(Object... values) { model().addRow(values); }
 
+    /**
+     * Replaces every row in ONE step (a single "data changed" event), instead of adding rows one
+     * by one. Faster, and avoids Swing's sorter briefly disagreeing with the row count.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void setRows(java.util.List<Object[]> rows) {
+        clearSelection();
+        java.util.Vector data = model().getDataVector(); // the model's own row storage
+        data.clear();
+        for (Object[] r : rows) data.add(new java.util.Vector<>(java.util.Arrays.asList(r)));
+        model().fireTableDataChanged(); // one event; columns, widths and the user's sort are kept
+    }
+
     /** Value of a column in the selected row (after sorting), or null if no row is selected. */
     public Object selectedValue(int column) {
         int view = getSelectedRow();

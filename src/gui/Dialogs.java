@@ -21,9 +21,9 @@ public final class Dialogs {
 
     /** The kind of pop-up decides the icon's colour and symbol. */
     public enum Kind {
-        QUESTION(new Color(52, 94, 210), "?"),
+        QUESTION(AdminTheme.ACCENT, "?"),
         WARNING(new Color(214, 140, 0), "!"),
-        INFO(new Color(52, 94, 210), "i");
+        INFO(AdminTheme.ACCENT, "i");
 
         private final Color color;
         private final String symbol;

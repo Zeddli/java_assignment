@@ -19,9 +19,9 @@ public class ManageStaffPanel extends AccountPanel {
     private final JComboBox<Role> cmbRole = new JComboBox<>();
     private final JComboBox<String> cmbDiscipline = new JComboBox<>(StaffService.DISCIPLINES);
 
-    public ManageStaffPanel() {
-        super("Manage Staff",
-              "Create, view, search, update and delete staff: instructors, facilities officers and attendance officers",
+    public ManageStaffPanel(String adminId) {
+        super(adminId, "Manage Staff",
+              "Add, view, search, update and delete staff accounts",
               "e.g. INS001 or Kenji", "Staff details",
               new StaffService(),
               "ID", "Name", "Role", "Username", "Status");
@@ -52,7 +52,7 @@ public class ManageStaffPanel extends AccountPanel {
     }
 
     @Override
-    protected int[] columnWidths() { return new int[]{55, 110, 115, 70, 65}; }
+    protected int[] columnWidths() { return new int[]{55, 105, 110, 80, 72}; }
 
     @Override
     protected void addFilterControls(JPanel toolbar) {
@@ -67,6 +67,12 @@ public class ManageStaffPanel extends AccountPanel {
 
     @Override
     protected void resetFilters() { cmbRoleFilter.setSelectedIndex(0); }
+
+    @Override
+    protected void setFilterRole(Role role) {
+        if (role == null) cmbRoleFilter.setSelectedIndex(0);
+        else cmbRoleFilter.setSelectedItem(role);
+    }
 
     @Override
     protected void addTopFields() { addField("Role", cmbRole, AccountForm.ROLE); }
