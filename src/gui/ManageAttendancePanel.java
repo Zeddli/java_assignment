@@ -201,10 +201,10 @@ public class ManageAttendancePanel extends JPanel {
         int n = 0;
         for (int i = 0; i < model.rows.size(); i++) {
             Row r = model.rows.get(i);
-            if (r.record == null && r.status == null) { r.status = "PRESENT"; n++; }
+            if (!"PRESENT".equals(r.status)) { r.status = "PRESENT"; n++; }
         }
         model.fireTableDataChanged();
-        lblError.setText(n == 0 ? "Everyone already has an attendance choice." : " ");
+        lblError.setText(n == 0 ? "Everyone is already marked present." : " ");
     }
 
     /** Save attendance: creates records for students who have none yet. */
