@@ -45,15 +45,17 @@ public class StudentHistoryDialog extends JDialog {
         for (PaymentEntry p : payments) {
             tPayments.addRow(p.getPaymentId(), p.getClassLabel(), p.getMethod(), p.getPaidDate(), p.getAmount());
         }
+        AdminTheme.styleTable(tBookings, -1);
+        AdminTheme.styleTable(tPayments, -1);
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Bookings (" + bookings.size() + ")", new JScrollPane(tBookings));
         tabs.addTab("Payments (" + payments.size() + ")", new JScrollPane(tPayments));
 
         JLabel info = new JLabel(student.getEmail() + "  ·  " + student.getPhone()
                 + "  ·  born " + student.getExtra() + "  ·  " + student.getStatus());
-        info.setForeground(Color.DARK_GRAY);
+        info.setForeground(AdminTheme.TEXT_MUTED);
 
-        JButton close = new JButton("Close");
+        JButton close = new AdminButton("Close", AdminButton.Style.PRIMARY);
         close.addActionListener(e -> dispose());
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         south.add(close);

@@ -25,29 +25,27 @@ public final class ModuleSetup {
                     "Revenue Report",
                     new RevenueReportPanel()
             );
+
+            dashboard.registerModule(
+                    "Manage Administrators",
+                    new ManageAdministratorsPanel()
+            );
+
+            dashboard.registerModule(
+                    "Manage Staff",
+                    new StaffReportPanel()
+
+            );
         }
 
-        // Attendance Officer Modules
+        // Attendance Officer Modules (Overview, AO1, AO2, AO3)
         if (Role.ATTENDANCE.equals(user.getRole())) {
-            dashboard.registerModule(
-                    "Manage Class Attendance",
-                    new ManageAttendancePanel(user)
-            );
-            dashboard.registerModule(
-                    "Attendance Records",
-                    new AttendanceRecordsPanel()
-            );
-            dashboard.registerModule(
-                    "Attendance Report",
-                    new AttendanceReportPanel()
-            );
+           AttendanceModules.register(dashboard, user);
         }
 
         // Administrator Modules (AD1, AD2, AD3)
         if (Role.ADMIN.equals(user.getRole())) {
-            dashboard.registerModule("Manage Staff", new ManageStaffPanel());
-            dashboard.registerModule("Manage Students", new ManageStudentsPanel());
-            dashboard.registerModule("Payment Records", new PaymentRecordsPanel());
+            AdminModules.register(dashboard, user); // Overview, AD1, AD2, AD3, My Profile
         }
 
         // Uncomment and update as team members finish their respective role screens:

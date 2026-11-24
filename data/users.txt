@@ -15,3 +15,10 @@ STU003|STUDENT|arjun|test123|Arjun Singh|arjun@mail.com|0197773030|2003-08-21|IN
 STU005|STUDENT|farah|test123|Farah Aziz|farah@mail.com|0123334545|2006-01-15|ACTIVE
 STU006|STUDENT|leejun|test123|Lee Jun|leejun@mail.com|0164445656|2002-11-30|ACTIVE
 STU007|STUDENT|aiman|test123|Aiman Zaki|aiman@mail.com|0135556767|2008-07-04|ACTIVE
+STU008|STUDENT|huimin|test123|Tan Hui Min|huimin@mail.com|0171230008|2005-03-18|ACTIVE
+STU009|STUDENT|danish|test123|Danish Irfan|danish@mail.com|0171230009|2004-09-02|ACTIVE
+STU010|STUDENT|priya|test123|Priya Nair|priya@mail.com|0171230010|2003-12-25|ACTIVE
+STU011|STUDENT|zara|test123|Zara Ong|zara@mail.com|0171230011|2006-06-11|ACTIVE
+STU012|STUDENT|haziq|test123|Haziq Ali|haziq@mail.com|0171230012|2002-04-07|ACTIVE
+INS004|INSTRUCTOR|kahyee|test123|Wong Kah Yee|kahyee@sdams.my|0171230013|Judo|ACTIVE
+ADM003|ADMIN|justinbieber|Aaa123456|The Weekend|justin@admin.co|01125632563||INACTIVE
