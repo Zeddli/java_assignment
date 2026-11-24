@@ -392,8 +392,7 @@ public class BookClassesPanel extends JPanel {
                 continue;
             }
 
-            int bookedCount = bookingRepository
-                    .findBookedByClass(session.getId()).size();
+            int bookedCount = countReservedSeats(session.getId());
 
             int freeSlots = Math.max(
                     0, session.getCapacity() - bookedCount);
@@ -482,8 +481,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        int bookedCount = bookingRepository
-                .findBookedByClass(classId).size();
+        int bookedCount = countReservedSeats(classId);
 
         if (bookedCount >= session.getCapacity()) {
             JOptionPane.showMessageDialog(this,
@@ -542,6 +540,15 @@ public class BookClassesPanel extends JPanel {
                     "UNPAID"
             );
 
+            ClassSession classAtSave = classRepository.findById(classId);
+            if (classAtSave == null
+                    || !"OPEN".equalsIgnoreCase(classAtSave.getStatus())
+                    || countReservedSeats(classId) >= classAtSave.getCapacity()) {
+                JOptionPane.showMessageDialog(this,
+                        "This class is no longer available for booking.");
+                refreshTables();
+                return;
+            }
             bookingRepository.add(booking);
 
             refreshTables();
@@ -751,8 +758,7 @@ public class BookClassesPanel extends JPanel {
                 continue;
             }
 
-            int bookedCount = bookingRepository
-                    .findBookedByClass(session.getId()).size();
+            int bookedCount = countReservedSeats(session.getId());
 
             if (bookedCount >= session.getCapacity()) {
                 continue;
@@ -842,8 +848,7 @@ public class BookClassesPanel extends JPanel {
             return;
         }
 
-        int latestBookedCount = bookingRepository
-                .findBookedByClass(latestClass.getId()).size();
+        int latestBookedCount = countReservedSeats(latestClass.getId());
 
         if (latestBookedCount >= latestClass.getCapacity()) {
             JOptionPane.showMessageDialog(this,
@@ -910,8 +915,7 @@ public class BookClassesPanel extends JPanel {
         if (confirmedClass == null
                 || !"OPEN".equalsIgnoreCase(confirmedClass.getStatus())
                 || confirmedClass.hasStarted()
-                || bookingRepository.findBookedByClass(
-                        confirmedClass.getId()).size()
+                || countReservedSeats(confirmedClass.getId())
                 >= confirmedClass.getCapacity()
                 || hasOverlappingBooking(
                         confirmedClass, latestBooking.getId())) {
@@ -957,6 +961,17 @@ public class BookClassesPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    private int countReservedSeats(String classId) {
+        int count = 0;
+        for (Booking booking : bookingRepository.findAll()) {
+            // Unpaid active bookings still reserve a seat.
+            if (booking.isBooked() && classId.equals(booking.getClassId())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private boolean hasOverlappingBooking(

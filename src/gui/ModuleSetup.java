@@ -68,6 +68,11 @@ public final class ModuleSetup {
                     "Instructor Ratings",
                     new InstructorRatingPanel(user)
             );
+
+            dashboard.registerModule(
+                    "My Training Progress",
+                    new TrainingProgressPanel(user)
+            );
         }
         // if (Role.INSTRUCTOR.equals(user.getRole())) {
         //     dashboard.registerModule("View Schedule", new InstructorSchedulePanel());
