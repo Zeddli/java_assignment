@@ -38,20 +38,9 @@ public final class ModuleSetup {
             );
         }
 
-        // Attendance Officer Modules
+        // Attendance Officer Modules (Overview, AO1, AO2, AO3)
         if (Role.ATTENDANCE.equals(user.getRole())) {
-            dashboard.registerModule(
-                    "Manage Class Attendance",
-                    new ManageAttendancePanel(user)
-            );
-            dashboard.registerModule(
-                    "Attendance Records",
-                    new AttendanceRecordsPanel()
-            );
-            dashboard.registerModule(
-                    "Attendance Report",
-                    new AttendanceReportPanel()
-            );
+           AttendanceModules.register(dashboard, user);
         }
 
         // Administrator Modules (AD1, AD2, AD3)
